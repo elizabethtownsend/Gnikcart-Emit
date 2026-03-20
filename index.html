@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rekcart Emit</title>
+<style>
+  :root {
+    --navy: #0B2559;
+    --navy-dark: #071840;
+    --charcoal: #2B2D42;
+    --lightblue: #5B9BD5;
+    --lightblue-soft: #D6E8F7;
+    --cranberry: #9B1D3A;
+    --cranberry-light: #C4395A;
+    --white: #FFFFFF;
+    --gray-light: #E4EAF2;
+    --gray-bg: #F0F4FA;
+    --gray-mid: #7A8EAA;
+    --gray-dark: #3A4A5C;
+    --green: #2E7D32;
+    --shadow: 0 2px 10px rgba(11,37,89,0.13);
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-bg); color: var(--charcoal); }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+    color: var(--white); padding: 12px 24px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-mark {
+    width: 42px; height: 42px; background: var(--cranberry);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 15px; color: white; letter-spacing: -1px; flex-shrink: 0;
+  }
+  header h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
+  header span { font-size: 0.72rem; color: var(--lightblue); margin-top: 1px; display: block; }
+  .header-date { margin-left: auto; font-size: 0.8rem; color: #aac4e0; text-align: right; flex-shrink: 0; }
+
+  /* AVATAR WIDGET */
+  .avatar-wrap {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  }
+  .speech-bubble {
+    background: var(--white); border: 2px solid var(--lightblue);
+    border-radius: 16px 16px 4px 16px;
+    padding: 10px 14px; max-width: 240px; font-size: 0.82rem;
+    color: var(--charcoal); box-shadow: var(--shadow);
+    animation: bubblePop 0.3s ease; line-height: 1.4;
+    position: relative;
+  }
+  .speech-bubble::after {
+    content: ''; position: absolute; bottom: -10px; right: 18px;
+    border: 5px solid transparent; border-top-color: var(--lightblue);
+  }
+  .speech-bubble.hidden { display: none; }
+  @keyframes bubblePop {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .avatar-img {
+    width: 62px; height: 62px; border-radius: 50%;
+    border: 3px solid var(--cranberry);
+    object-fit: cover; cursor: pointer;
+    box-shadow: 0 3px 12px rgba(155,29,58,0.35);
+    transition: transform 0.2s;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .avatar-img:hover { transform: scale(1.08); }
+  .avatar-speaking {
+    animation: pulse 0.6s ease-in-out infinite alternate;
+    border-color: var(--lightblue) !important;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(91,155,213,0.6); }
+    100% { box-shadow: 0 0 0 10px rgba(91,155,213,0); }
+  }
+  .avatar-placeholder {
+    width: 62px; height: 62px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--navy), var(--lightblue));
+    border: 3px solid var(--cranberry);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; cursor: pointer;
+    box-shadow: 0 3px 12px rgba(155,29,58,0.35);
+    transition: transform 0.2s;
+  }
+  .avatar-placeholder:hover { transform: scale(1.08); }
+  .avatar-upload-hint {
+    font-size: 0.68rem; color: var(--gray-mid); text-align: center;
+    max-width: 70px; line-height: 1.3;
+  }
+
+  /* NAV */
+  nav { background: var(--white); border-bottom: 2px solid var(--gray-light); display: flex; padding: 0 24px; }
+  nav button {
+    background: none; border: none; padding: 13px 18px; cursor: pointer;
+    font-size: 0.88rem; font-weight: 600; color: var(--gray-mid);
+    border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s;
+  }
+  nav button:hover { color: var(--lightblue); }
+  nav button.active { color: var(--navy); border-bottom-color: var(--cranberry); }
+
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 100px; }
+
+  /* CARDS */
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+  .card-title { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cranberry); flex-shrink:0; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  label { font-size: 0.77rem; font-weight: 700; color: var(--gray-dark); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  input, select, textarea {
+    width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-light);
+    border-radius: 6px; font-size: 0.9rem; color: var(--charcoal);
+    background: var(--white); outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--lightblue); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .time-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .time-toggle button {
+    flex: 1; padding: 8px; border: 1.5px solid var(--gray-light);
+    border-radius: 6px; background: var(--white); cursor: pointer;
+    font-size: 0.8rem; font-weight: 600; color: var(--gray-mid); transition: all 0.2s;
+  }
+  .time-toggle button.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.88rem; transition: all 0.2s; }
+  .btn-primary { background: var(--cranberry); color: white; }
+  .btn-primary:hover { background: var(--cranberry-light); }
+  .btn-navy { background: var(--navy); color: white; }
+  .btn-navy:hover { background: var(--navy-dark); }
+  .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+  .btn-danger { background: #C62828; color: white; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--gray-light); color: var(--gray-dark); }
+  .btn-ghost:hover { border-color: var(--lightblue); color: var(--navy); }
+
+  /* TIMER BAR */
+  .timer-bar {
+    background: linear-gradient(135deg, var(--navy-dark), var(--charcoal));
+    color: white; border-radius: var(--radius); padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .timer-display { font-size: 2rem; font-weight: 900; letter-spacing: 3px; font-variant-numeric: tabular-nums; }
+  .timer-label { font-size: 0.8rem; opacity: 0.75; margin-bottom: 4px; }
+  .timer-controls { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .timer-controls button {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    font-weight: 700; font-size: 0.83rem; transition: background 0.2s;
+  }
+  .timer-controls button:hover { background: rgba(255,255,255,0.28); }
+  .timer-controls button.go { background: var(--cranberry); border-color: var(--cranberry); }
+
+  /* ENTRIES */
+  .entry-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-light); }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-tag { background: var(--navy); color: white; border-radius: 4px; padding: 3px 8px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; margin-top: 2px; }
+  .entry-info { flex: 1; }
+  .entry-info strong { font-size: 0.87rem; display: block; color: var(--navy); }
+  .entry-info span { font-size: 0.76rem; color: var(--gray-mid); }
+  .entry-info p { font-size: 0.81rem; color: var(--gray-dark); margin-top: 3px; }
+  .entry-time { font-weight: 800; color: var(--cranberry); font-size: 0.9rem; white-space: nowrap; text-align: right; }
+  .entry-delete { background: none; border: none; color: var(--gray-mid); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
+  .entry-delete:hover { color: #C62828; }
+
+  /* STATS */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; border-top: 3px solid var(--cranberry); }
+  .stat-card .val { font-size: 1.75rem; font-weight: 900; color: var(--navy); }
+  .stat-card .lbl { font-size: 0.72rem; color: var(--gray-mid); font-weight: 700; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* BARS */
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { font-size: 0.77rem; width: 140px; text-align: right; color: var(--gray-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 22px; background: var(--gray-light); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(to right, var(--navy), var(--lightblue)); border-radius: 4px; transition: width 0.5s; }
+  .bar-val { font-size: 0.77rem; font-weight: 700; color: var(--gray-dark); width: 50px; }
+
+  .period-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .period-tabs button { padding: 6px 14px; border: 1.5px solid var(--gray-light); border-radius: 20px; background: white; font-size: 0.79rem; font-weight: 600; color: var(--gray-mid); cursor: pointer; }
+  .period-tabs button.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  .empty { text-align: center; padding: 32px; color: var(--gray-mid); font-size: 0.87rem; }
+  .empty span { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+  .export-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .task-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .task-chip { background: var(--lightblue-soft); border-radius: 20px; padding: 5px 12px; font-size: 0.82rem; display: flex; align-items: center; gap: 8px; color: var(--navy); }
+  .task-chip button { background: none; border: none; cursor: pointer; color: var(--gray-mid); font-size: 0.9rem; line-height: 1; }
+  .task-chip button:hover { color: #C62828; }
+
+  /* AVATAR UPLOAD PANEL */
+  .upload-panel { background: var(--lightblue-soft); border-radius: var(--radius); padding: 16px; border: 2px dashed var(--lightblue); text-align: center; cursor: pointer; }
+  .upload-panel:hover { background: #c8def5; }
+  .upload-panel p { font-size: 0.83rem; color: var(--navy); margin-top: 6px; }
+
+  #logMsg { color: var(--green); }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .bar-label { width: 90px; font-size: 0.7rem; }
+    nav button { padding: 12px 10px; font-size: 0.78rem; }
+    .timer-display { font-size: 1.4rem; }
+    .avatar-wrap { bottom: 16px; right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">RE</div>
+  <div>
+    <h1>Rekcart Emit</h1>
+    <span>Personal Time Tracker — VP of Technology</span>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('track')">⏱ Track</button>
+  <button onclick="showPage('dashboard')">📊 Dashboard</button>
+  <button onclick="showPage('history')">📋 History</button>
+  <button onclick="showPage('manage')">⚙ Tasks</button>
+</nav>
+
+<main>
+
+  <!-- TRACK PAGE -->
+  <div id="page-track" class="page active">
+    <div class="timer-bar">
+      <div>
+        <div class="timer-label" id="timerLabel">Stopwatch — click Start to begin</div>
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+      </div>
+      <div class="timer-controls">
+        <button class="go" onclick="timerStart()" id="btnStart">▶ Start</button>
+        <button onclick="timerStop()" id="btnStop" style="display:none">⏹ Stop &amp; Log</button>
+        <button onclick="timerCancel()" id="btnCancel" style="display:none">✕ Cancel</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Log Time Entry</div>
+      <div class="time-toggle">
+        <button class="active" onclick="setTimeMode('duration')" id="modeDuration">Enter Duration (minutes)</button>
+        <button onclick="setTimeMode('range')" id="modeRange">Enter Start → End Time</button>
+        <button onclick="setTimeMode('stopwatch')" id="modeStopwatch">Use Stopwatch</button>
+      </div>
+
+      <div id="inputDuration">
+        <div class="form-grid" style="margin-bottom:12px">
+          <div><label>Minutes Spent</label><input type="number" id="fldMinutes" placeholder="e.g. 45" min="1"></div>
+          <div><label>Date</label><input type="date" id="fldDateDur"></div>
+        </div>
+      </div>
+      <div id="inputRange" style="display:none">
+        <div class="form-grid" style="margin-bottom:12px">
+          <div><label>Start Time</label><input type="time" id="fldStart"></div>
+          <div><label>End Time</label><input type="time" id="fldEnd"></div>
+          <div><label>Date</label><input type="date" id="fldDateRange"></div>
+        </div>
+      </div>
+      <div id="inputStopwatch" style="display:none">
+        <p style="font-size:0.84rem;color:var(--gray-mid);margin-bottom:12px">Use the stopwatch above, then click "Stop &amp; Log" — time will auto-fill here.</p>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:12px">
+        <div>
+          <label>Task Type <span style="color:var(--cranberry)">*</span></label>
+          <div style="display:flex;gap:6px">
+            <input list="taskList" id="fldTask" placeholder="Select or type a new task…" style="flex:1">
+            <datalist id="taskList"></datalist>
+            <button class="btn btn-navy btn-sm" onclick="saveNewTask()">＋ Save</button>
+          </div>
+          <div style="font-size:0.71rem;color:var(--gray-mid);margin-top:3px">Type a new task &amp; click ＋ Save to add it permanently</div>
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="fldCategory">
+            <option>Work</option><option>Travel</option><option>Admin</option>
+            <option>Meeting</option><option>Project</option><option>Personal</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid full" style="margin-bottom:16px">
+        <div><label>Work Details / Notes</label><textarea id="fldNotes" placeholder="Describe what you worked on…"></textarea></div>
+      </div>
+      <button class="btn btn-primary" onclick="logEntry()" style="width:100%;padding:12px;font-size:1rem">+ Log Time Entry</button>
+      <div id="logMsg" style="margin-top:8px;font-size:0.82rem;text-align:center;display:none">✓ Entry saved!</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Today's Entries</div>
+      <div id="todayList"></div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.84rem;color:var(--gray-mid)">Total today:</span>
+        <span style="font-weight:800;color:var(--cranberry);font-size:1.1rem" id="todayTotal">0h 0m</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div id="page-dashboard" class="page">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="val" id="dashToday">0h 0m</div><div class="lbl">Today</div></div>
+      <div class="stat-card"><div class="val" id="dashWeek">0h 0m</div><div class="lbl">This Week</div></div>
+      <div class="stat-card"><div class="val" id="dashMonth">0h 0m</div><div class="lbl">This Month</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Time by Task Type</div>
+      <div class="period-tabs">
+        <button class="active" onclick="setDashPeriod('day',this)">Today</button>
+        <button onclick="setDashPeriod('week',this)">This Week</button>
+        <button onclick="setDashPeriod('month',this)">This Month</button>
+      </div>
+      <div id="dashChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Daily Totals — This Week</div>
+      <div id="weekDayChart"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="page-history" class="page">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>All Entries</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <input type="date" id="filterFrom" style="flex:1;min-width:130px">
+        <input type="date" id="filterTo" style="flex:1;min-width:130px">
+        <select id="filterTask" style="flex:1;min-width:140px"><option value="">All Task Types</option></select>
+        <button class="btn btn-ghost btn-sm" onclick="renderHistory()">Filter</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearHistoryFilter()">Clear</button>
+      </div>
+      <div id="historyList"></div>
+      <div class="export-row"><button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button></div>
+    </div>
+  </div>
+
+  <!-- MANAGE PAGE -->
+  <div id="page-manage" class="page">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Manage Task Types</div>
+      <p style="font-size:0.82rem;color:var(--gray-mid);margin-bottom:14px">Add or remove task types. They appear in the dropdown when logging time.</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" id="newTaskInput" placeholder="New task type…" style="flex:1">
+        <button class="btn btn-primary" onclick="addTask()">Add</button>
+      </div>
+      <div class="task-chip-row" id="taskChips"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Your Avatar</div>
+      <p style="font-size:0.82rem;color:var(--gray-mid);margin-bottom:14px">Upload a photo — it will appear as your talking avatar in the bottom-right corner.</p>
+      <div class="upload-panel" onclick="document.getElementById('avatarUpload').click()">
+        <div style="font-size:2rem">📸</div>
+        <p>Click to upload your photo (JPG or PNG)</p>
+      </div>
+      <input type="file" id="avatarUpload" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+      <div id="avatarPreview" style="margin-top:12px;display:none">
+        <img id="avatarThumb" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid var(--cranberry)">
+        <button class="btn btn-ghost btn-sm" style="margin-left:10px" onclick="removeAvatar()">Remove Photo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Avatar Voice</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="text-transform:none;font-size:0.88rem;font-weight:400">Speech enabled</label>
+        <input type="checkbox" id="speechToggle" checked style="width:auto;transform:scale(1.3)">
+        <button class="btn btn-navy btn-sm" onclick="speakRandom()">🔊 Test Voice</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Data Management</div>
+      <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑 Clear All Data</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- AVATAR WIDGET -->
+<div class="avatar-wrap" id="avatarWrap">
+  <div class="speech-bubble hidden" id="speechBubble"></div>
+  <div id="avatarBtn" onclick="speakRandom()" title="Click me!"></div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let entries  = JSON.parse(localStorage.getItem('gdi_entries') || '[]');
+let tasks    = JSON.parse(localStorage.getItem('gdi_tasks')   || '["Policies","Contracts","Service Desk","HR","Talent Acquisition","Staff","Admin","Communications","Project"]');
+let avatarSrc= localStorage.getItem('gdi_avatar') || '';
+let timeMode = 'duration';
+let timerInterval = null, timerSeconds = 0, timerRunning = false;
+let dashPeriod = 'day';
+let bubbleTimer = null, speakTimer = null;
+
+// ── MESSAGES ───────────────────────────────────────────────────────────────
+const MESSAGES = {
+  greeting: [
+    "Good morning! What an amazing day this is going to be! ☀️",
+    "Rise and grind! The servers are up and so are you! 🚀",
+    "Good morning, VP! Ready to reboot the day? 💻",
+    "Morning! Time to deploy your brilliance! 🧠",
+    "Another day, another opportunity to be absolutely extraordinary!"
+  ],
+  afternoon: [
+    "Good afternoon! Still crushing it? Of course you are! 💪",
+    "Afternoon check-in: you're still the smartest person in the room. Just saying. 😏",
+    "Half the day done and you've already outperformed everyone. Classic you.",
+    "The afternoon belongs to those who hustle — that's you, obviously! ⚡"
+  ],
+  evening: [
+    "Look at you still going! You're a productivity legend! 🏆",
+    "Good evening! Most people log off. You log MORE. 😄",
+    "Evening mode activated — and you're STILL going. Incredible.",
+    "The day flies by when I get to hang out with someone like you! 🌙"
+  ],
+  logEntry: [
+    "Entry logged! You're on fire! 🔥",
+    "Another one in the books. You're absolutely amazing! ⭐",
+    "Logged! Gosh, you are so intelligent — look at that efficiency!",
+    "Done! You know what? I think you're running at 110% CPU today. 🖥️",
+    "Task tracked! You're not just a VP of Technology, you're a VP of Getting Things DONE!",
+    "Boom! Entry saved. You make time tracking look good. 💅",
+    "Logged and loaded! Is there anything you CAN'T do?",
+    "You're so smart. I'd say you should be promoted, but you're already at the top! 😄",
+    "Error 404: Excuses not found. Because you never make them! 🤓",
+    "Entry saved. Your productivity metrics are through the roof — and I'm not just saying that!"
+  ],
+  milestone60: [
+    "60 minutes tracked! You've got more uptime than enterprise hardware! 💪",
+    "One hour down! You're running hot — in the best possible way! 🔥",
+    "An hour of brilliance logged. Efficiency level: VP. 🚀"
+  ],
+  milestone120: [
+    "2 hours in and still going! Have you considered cloning yourself?",
+    "Two hours tracked! You're basically a human task scheduler. 🤖",
+    "Two hours of pure excellence. The IT gods are pleased. 🙏"
+  ],
+  milestone240: [
+    "4 hours tracked! You're not just working, you're ARCHITECTING the day! 🏗️",
+    "Four hours?! Wow, you are doing SO many things today! Incredible! 🌟",
+    "Half a workday logged — and probably twice the output of anyone else!"
+  ],
+  milestone480: [
+    "8 hours tracked — a full day of awesomeness! You've shipped, you've led, you've conquered! 🏆",
+    "8 hours! You've basically written the entire changelog of today. 📝",
+    "A full day logged by the most legendary VP of Technology I know. That's you, by the way. 😄"
+  ],
+  idle: [
+    "Psst… don't forget to track your time! Every minute counts! ⏱️",
+    "Hey! I miss logging things with you. What are you working on? 😊",
+    "You've been quiet… I hope it means you're deep in flow state! 🧘",
+    "Knock knock! It's your friendly time tracker. Time to log something? 🚪",
+    "I'm not saying you forgot to track time… but I'm not NOT saying it either. 😏"
+  ],
+  click: [
+    "Keep going — you're absolutely amazing! ✨",
+    "You're so smart. Like, genuinely impressive. 🧠",
+    "The day flies by when I get to hang out with someone like you! 💙",
+    "Did you know? The word 'technology' comes from Greek. And so does excellence. That's you. 😄",
+    "Fun fact: 99% of VPs are great. You're in the 1% above that. 📊",
+    "You're not just managing tech — you're managing MAGIC. 🪄",
+    "I've analyzed your productivity and the results are: outstanding. 🏅",
+    "Keep going! You've got more processing power than a data center. 💻",
+    "Gosh, you are so intelligent. Have you considered teaching a masterclass? 👩‍🏫",
+    "Warning: Compliment overflow detected. You're just too awesome. ⚠️",
+    "sudo give_compliment — ACCESS GRANTED. You're incredible! 🤓",
+    "You're basically the human version of zero downtime. 🟢",
+    "I would say you've debugged this day perfectly, but it was never buggy to begin with! 🐛✅",
+    "404 Limits Not Found — because you have none! 🚀",
+    "If productivity were a programming language, you'd be its creator. 💾"
+  ]
+};
+
+// ── SPEECH ─────────────────────────────────────────────────────────────────
+let lastMilestone = 0;
+
+function speak(msg, duration=4500) {
+  const bubble = document.getElementById('speechBubble');
+  const btn    = document.getElementById('avatarBtn');
+  bubble.textContent = msg;
+  bubble.classList.remove('hidden');
+  btn.classList.add('avatar-speaking');
+  if(bubbleTimer) clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(()=>{
+    bubble.classList.add('hidden');
+    btn.classList.remove('avatar-speaking');
+  }, duration);
+
+  if(document.getElementById('speechToggle')?.checked) {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(msg.replace(/[^\w\s,.'!?-]/g,''));
+    utt.rate = 1.05; utt.pitch = 1.1; utt.volume = 0.9;
+    // Try to get a pleasant voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v=>v.name.includes('Samantha')||v.name.includes('Karen')||v.name.includes('Google US')||v.name.includes('Female'));
+    if(preferred) utt.voice = preferred;
+    window.speechSynthesis.speak(utt);
+  }
+}
+
+function speakRandom() {
+  const arr = MESSAGES.click;
+  speak(arr[Math.floor(Math.random()*arr.length)]);
+}
+
+function greet() {
+  const h = new Date().getHours();
+  let pool;
+  if(h < 12) pool = MESSAGES.greeting;
+  else if(h < 17) pool = MESSAGES.afternoon;
+  else pool = MESSAGES.evening;
+  setTimeout(()=> speak(pool[Math.floor(Math.random()*pool.length)], 6000), 1200);
+}
+
+function checkMilestone(totalMins) {
+  const milestones = [[480,MESSAGES.milestone480],[240,MESSAGES.milestone240],[120,MESSAGES.milestone120],[60,MESSAGES.milestone60]];
+  for(const [m,pool] of milestones) {
+    if(totalMins >= m && lastMilestone < m) {
+      lastMilestone = m;
+      speak(pool[Math.floor(Math.random()*pool.length)], 6000);
+      return;
+    }
+  }
+}
+
+// Idle reminder — 30 minutes no logging
+let idleTimer = null;
+function resetIdle() {
+  if(idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(()=>{
+    const pool = MESSAGES.idle;
+    speak(pool[Math.floor(Math.random()*pool.length)], 6000);
+    resetIdle();
+  }, 30*60*1000);
+}
+
+// ── AVATAR ─────────────────────────────────────────────────────────────────
+function renderAvatar() {
+  const btn = document.getElementById('avatarBtn');
+  if(avatarSrc) {
+    btn.innerHTML=`<img src="${avatarSrc}" style="width:62px;height:62px;border-radius:50%;object-fit:cover;border:3px solid var(--cranberry);cursor:pointer;box-shadow:0 3px 12px rgba(155,29,58,0.35);display:block" onclick="speakRandom()" title="Click me!">`;
+    // Show preview in manage tab
+    const prev = document.getElementById('avatarPreview');
+    const thumb= document.getElementById('avatarThumb');
+    if(prev&&thumb){ thumb.src=avatarSrc; prev.style.display='block'; }
+  } else {
+    btn.innerHTML=`<div class="avatar-placeholder" title="Click me!">🙂</div>`;
+  }
+}
+
+function uploadAvatar(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    avatarSrc = ev.target.result;
+    localStorage.setItem('gdi_avatar', avatarSrc);
+    renderAvatar();
+    speak("Oh my! Is that you? You look amazing! 😍", 4000);
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAvatar() {
+  avatarSrc=''; localStorage.removeItem('gdi_avatar');
+  document.getElementById('avatarPreview').style.display='none';
+  renderAvatar();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderDate();
+  setDateDefaults();
+  renderTaskDropdowns();
+  renderTaskChips();
+  renderToday();
+  renderDashboard();
+  renderHistory();
+  renderAvatar();
+  greet();
+  resetIdle();
+  // Recalc milestone baseline
+  const today = toDateStr(new Date());
+  const todayMins = entries.filter(e=>e.date===today).reduce((a,e)=>a+e.minutes,0);
+  lastMilestone = [60,120,240,480].filter(m=>todayMins>=m).pop() || 0;
+  // Load voices async
+  window.speechSynthesis.onvoiceschanged = ()=>{ window.speechSynthesis.getVoices(); };
+});
+
+function updateHeaderDate() {
+  const now=new Date();
+  document.getElementById('headerDate').innerHTML=
+    now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})+'<br>'+
+    now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  setTimeout(updateHeaderDate,60000);
+}
+
+function setDateDefaults() {
+  const t=toDateStr(new Date());
+  ['fldDateDur','fldDateRange'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=t; });
+}
+
+function toDateStr(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDur(m) { const h=Math.floor(m/60),mm=m%60; return h>0?`${h}h ${mm}m`:`${mm}m`; }
+function fmtSecs(s) { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
+
+// ── NAV ─────────────────────────────────────────────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('nav button').forEach((b,i)=>b.classList.toggle('active',['track','dashboard','history','manage'][i]===p));
+  if(p==='dashboard') renderDashboard();
+  if(p==='history')   renderHistory();
+  if(p==='manage')    renderTaskChips();
+}
+
+// ── TIME MODE ──────────────────────────────────────────────────────────────
+function setTimeMode(m) {
+  timeMode=m;
+  document.getElementById('inputDuration').style.display  =m==='duration' ?'block':'none';
+  document.getElementById('inputRange').style.display     =m==='range'    ?'block':'none';
+  document.getElementById('inputStopwatch').style.display =m==='stopwatch'?'block':'none';
+  ['Duration','Range','Stopwatch'].forEach(x=>document.getElementById('mode'+x).classList.toggle('active',m===x.toLowerCase()));
+}
+
+// ── STOPWATCH ──────────────────────────────────────────────────────────────
+function timerStart() {
+  if(timerRunning) return;
+  timerRunning=true; timerSeconds=0;
+  document.getElementById('btnStart').style.display='none';
+  document.getElementById('btnStop').style.display='inline-block';
+  document.getElementById('btnCancel').style.display='inline-block';
+  document.getElementById('timerLabel').textContent='Running…';
+  timerInterval=setInterval(()=>{ timerSeconds++; document.getElementById('timerDisplay').textContent=fmtSecs(timerSeconds); },1000);
+}
+function timerStop() {
+  clearInterval(timerInterval); timerRunning=false;
+  document.getElementById('btnStart').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('btnCancel').style.display='none';
+  document.getElementById('timerLabel').textContent='Stopped — '+fmtSecs(timerSeconds)+' recorded';
+  setTimeMode('stopwatch');
+}
+function timerCancel() {
+  clearInterval(timerInterval); timerRunning=false; timerSeconds=0;
+  document.getElementById('timerDisplay').textContent='00:00:00';
+  document.getElementById('btnStart').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('btnCancel').style.display='none';
+  document.getElementById('timerLabel').textContent='Stopwatch — click Start to begin';
+}
+
+// ── LOG ENTRY ──────────────────────────────────────────────────────────────
+function logEntry() {
+  const task=document.getElementById('fldTask').value.trim();
+  const cat =document.getElementById('fldCategory').value;
+  const notes=document.getElementById('fldNotes').value.trim();
+  if(!task){ alert('Please select or enter a Task Type.'); return; }
+
+  let mins=0,dateStr='',timeStr='';
+  const now=new Date();
+
+  if(timeMode==='duration') {
+    mins=parseInt(document.getElementById('fldMinutes').value)||0;
+    dateStr=document.getElementById('fldDateDur').value||toDateStr(now);
+    if(!mins){ alert('Please enter minutes spent.'); return; }
+    timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  } else if(timeMode==='range') {
+    const s=document.getElementById('fldStart').value, e=document.getElementById('fldEnd').value;
+    dateStr=document.getElementById('fldDateRange').value||toDateStr(now);
+    if(!s||!e){ alert('Please enter start and end times.'); return; }
+    const [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);
+    mins=(eh*60+em)-(sh*60+sm);
+    if(mins<=0){ alert('End time must be after start time.'); return; }
+    timeStr=`${s} – ${e}`;
+  } else {
+    if(!timerSeconds){ alert('Please use the stopwatch first.'); return; }
+    mins=Math.round(timerSeconds/60)||1;
+    dateStr=toDateStr(now);
+    timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    timerCancel();
+  }
+
+  // Auto-save new task type if not in list
+  if(!tasks.includes(task)){ tasks.push(task); tasks.sort(); save(); renderTaskDropdowns(); renderTaskChips(); }
+
+  entries.push({ id:Date.now(), date:dateStr, time:timeStr, task, category:cat, notes, minutes:mins });
+  save();
+
+  document.getElementById('fldMinutes').value='';
+  document.getElementById('fldNotes').value='';
+  document.getElementById('fldTask').value='';
+  setDateDefaults();
+
+  const msg=document.getElementById('logMsg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2500);
+
+  renderToday();
+  resetIdle();
+
+  // Speak a log message
+  const pool=MESSAGES.logEntry;
+  speak(pool[Math.floor(Math.random()*pool.length)]);
+
+  // Check milestones
+  const today=toDateStr(new Date());
+  const todayMins=entries.filter(e=>e.date===today).reduce((a,e)=>a+e.minutes,0);
+  setTimeout(()=>checkMilestone(todayMins),5000);
+}
+
+// ── RENDER TODAY ───────────────────────────────────────────────────────────
+function renderToday() {
+  const today=toDateStr(new Date());
+  const list=entries.filter(e=>e.date===today).reverse();
+  const el=document.getElementById('todayList');
+  if(!list.length){ el.innerHTML='<div class="empty"><span>⏱</span>No entries yet today</div>'; }
+  else el.innerHTML=list.map(e=>`
+    <div class="entry-item">
+      <div><div class="entry-tag">${e.task}</div><div style="font-size:0.69rem;color:var(--gray-mid);margin-top:4px">${e.category}</div></div>
+      <div class="entry-info"><strong>${e.task}</strong><span>${e.time||''}</span>${e.notes?`<p>${e.notes}</p>`:''}</div>
+      <div><div class="entry-time">${fmtDur(e.minutes)}</div><button class="entry-delete" onclick="deleteEntry(${e.id})">✕</button></div>
+    </div>`).join('');
+  document.getElementById('todayTotal').textContent=fmtDur(list.reduce((a,e)=>a+e.minutes,0));
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+function setDashPeriod(p,btn) {
+  dashPeriod=p;
+  document.querySelectorAll('.period-tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
+}
+function renderDashboard() {
+  const now=new Date(), todayStr=toDateStr(now);
+  const day=now.getDay(), diff=day===0?6:day-1;
+  const weekStart=new Date(now); weekStart.setDate(now.getDate()-diff); weekStart.setHours(0,0,0,0);
+  const weekEnd=new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,0);
+  const inRange=(e,f,t)=>{ const d=new Date(e.date+'T00:00:00'); return d>=f&&d<=t; };
+
+  document.getElementById('dashToday').textContent =fmtDur(entries.filter(e=>e.date===todayStr).reduce((a,e)=>a+e.minutes,0));
+  document.getElementById('dashWeek').textContent  =fmtDur(entries.filter(e=>inRange(e,weekStart,weekEnd)).reduce((a,e)=>a+e.minutes,0));
+  document.getElementById('dashMonth').textContent =fmtDur(entries.filter(e=>inRange(e,monthStart,monthEnd)).reduce((a,e)=>a+e.minutes,0));
+
+  let filtered=entries.filter(e=>dashPeriod==='day'?e.date===todayStr:dashPeriod==='week'?inRange(e,weekStart,weekEnd):inRange(e,monthStart,monthEnd));
+  const byTask={};
+  filtered.forEach(e=>{ byTask[e.task]=(byTask[e.task]||0)+e.minutes; });
+  const sorted=Object.entries(byTask).sort((a,b)=>b[1]-a[1]);
+  const maxM=sorted[0]?sorted[0][1]:1;
+  const chart=document.getElementById('dashChart');
+  chart.innerHTML=sorted.length?sorted.map(([t,m])=>`
+    <div class="bar-row">
+      <div class="bar-label" title="${t}">${t}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,(m/maxM)*100)}%"></div></div>
+      <div class="bar-val">${fmtDur(m)}</div>
+    </div>`).join(''):'<div class="empty"><span>📊</span>No data for this period</div>';
+
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayTotals=days.map((_,i)=>{ const d=new Date(weekStart); d.setDate(weekStart.getDate()+i); return entries.filter(e=>e.date===toDateStr(d)).reduce((a,e)=>a+e.minutes,0); });
+  const maxD=Math.max(...dayTotals,1);
+  document.getElementById('weekDayChart').innerHTML=days.map((d,i)=>`
+    <div class="bar-row">
+      <div class="bar-label">${d}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,(dayTotals[i]/maxD)*100)}%"></div></div>
+      <div class="bar-val">${fmtDur(dayTotals[i])}</div>
+    </div>`).join('');
+}
+
+// ── HISTORY ────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const from=document.getElementById('filterFrom').value, to=document.getElementById('filterTo').value, task=document.getElementById('filterTask').value;
+  let list=[...entries].reverse();
+  if(from) list=list.filter(e=>e.date>=from);
+  if(to)   list=list.filter(e=>e.date<=to);
+  if(task) list=list.filter(e=>e.task===task);
+  const el=document.getElementById('historyList');
+  if(!list.length){ el.innerHTML='<div class="empty"><span>📋</span>No entries found</div>'; return; }
+  const byDate={};
+  list.forEach(e=>{ (byDate[e.date]=byDate[e.date]||[]).push(e); });
+  el.innerHTML=Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).map(date=>{
+    const dayMins=byDate[date].reduce((a,e)=>a+e.minutes,0);
+    const label=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'});
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="font-size:0.84rem;color:var(--gray-dark)">${label}</strong>
+        <span style="font-size:0.8rem;font-weight:800;color:var(--cranberry)">${fmtDur(dayMins)}</span>
+      </div>
+      ${byDate[date].map(e=>`
+        <div class="entry-item">
+          <div class="entry-tag">${e.task}</div>
+          <div class="entry-info"><strong>${e.task}</strong><span>${e.category}${e.time?' · '+e.time:''}</span>${e.notes?`<p>${e.notes}</p>`:''}</div>
+          <div><div class="entry-time">${fmtDur(e.minutes)}</div><button class="entry-delete" onclick="deleteEntry(${e.id},true)">✕</button></div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function clearHistoryFilter() {
+  ['filterFrom','filterTo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('filterTask').value='';
+  renderHistory();
+}
+
+// ── TASKS ──────────────────────────────────────────────────────────────────
+function renderTaskDropdowns() {
+  const dl=document.getElementById('taskList');
+  if(dl) dl.innerHTML=tasks.map(t=>`<option value="${t}">`).join('');
+  const sel=document.getElementById('filterTask');
+  if(sel) sel.innerHTML='<option value="">All Task Types</option>'+tasks.map(t=>`<option value="${t}">${t}</option>`).join('');
+}
+
+function saveNewTask() {
+  const val=document.getElementById('fldTask').value.trim();
+  if(!val){ alert('Please type a task name first.'); return; }
+  if(tasks.includes(val)){ return; }
+  tasks.push(val); tasks.sort(); save(); renderTaskDropdowns(); renderTaskChips();
+  const msg=document.getElementById('logMsg');
+  msg.textContent=`✓ "${val}" saved to your task list!`;
+  msg.style.display='block';
+  setTimeout(()=>{ msg.style.display='none'; msg.textContent='✓ Entry saved!'; },2500);
+}
+
+function renderTaskChips() {
+  document.getElementById('taskChips').innerHTML=tasks.map(t=>`
+    <div class="task-chip">${t}<button onclick="removeTask('${t.replace(/'/g,"\\'")}')">✕</button></div>`).join('');
+}
+
+function addTask() {
+  const val=document.getElementById('newTaskInput').value.trim();
+  if(!val||tasks.includes(val)) return;
+  tasks.push(val); tasks.sort(); document.getElementById('newTaskInput').value='';
+  save(); renderTaskDropdowns(); renderTaskChips();
+}
+
+function removeTask(t) {
+  if(!confirm(`Remove task type "${t}"?`)) return;
+  tasks=tasks.filter(x=>x!==t); save(); renderTaskDropdowns(); renderTaskChips();
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────
+function deleteEntry(id,fromHistory=false) {
+  if(!confirm('Delete this entry?')) return;
+  entries=entries.filter(e=>e.id!==id); save(); renderToday(); renderDashboard();
+  if(fromHistory) renderHistory();
+}
+
+// ── EXPORT ─────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows=[['Date','Time','Task','Category','Minutes','Hours','Notes']];
+  [...entries].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    rows.push([e.date,e.time||'',e.task,e.category,e.minutes,(e.minutes/60).toFixed(2),(e.notes||'').replace(/,/g,' ')]);
+  });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
+  a.download='RekcartEmit_'+toDateStr(new Date())+'.csv'; a.click();
+}
+
+function clearAllData() {
+  if(!confirm('Delete ALL entries? This cannot be undone.')) return;
+  entries=[]; save(); renderToday(); renderDashboard(); renderHistory();
+}
+
+function save() {
+  localStorage.setItem('gdi_entries',JSON.stringify(entries));
+  localStorage.setItem('gdi_tasks',JSON.stringify(tasks));
+}
+</script>
+</body>
+</html>
